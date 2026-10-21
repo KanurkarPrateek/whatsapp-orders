@@ -11,7 +11,7 @@ import { rm } from "node:fs/promises";
 import pino from "pino";
 import QRCode from "qrcode";
 import { handleMessage } from "./bot.js";
-import { getSettings } from "./db.js";
+import * as db from "./db.js";
 
 const AUTH_DIR = process.env.AUTH_DIR || new URL("./auth", import.meta.url).pathname;
 const log = pino({ level: process.env.LOG_LEVEL || "info" });
@@ -92,7 +92,7 @@ async function onMessage(msg) {
   const phone = jid.endsWith("@s.whatsapp.net") ? jid.split("@")[0] : msg.key.senderPn?.split("@")[0] ?? null;
 
   // Test mode: only answer the listed numbers.
-  const allowed = getSettings().test_numbers.split(",").map(digits).filter(Boolean);
+  const allowed = db.getSettings().test_numbers.split(",").map(digits).filter(Boolean);
   if (allowed.length) {
     const id = digits(phone) || digits(jid.split("@")[0]);
     if (!allowed.some((a) => id.endsWith(a) || a.endsWith(id))) {
@@ -101,9 +101,14 @@ async function onMessage(msg) {
     }
   }
 
+  log.info({ from: phone ?? jid, name: msg.pushName, text }, "message in");
   const { replies, order } = handleMessage({ jid, phone, name: msg.pushName || null, text });
   for (const r of replies) await sock.sendMessage(jid, { text: r });
-  if (order) events.emit("order", order);
+  log.info({ to: jid, count: replies.length }, "replied");
+  if (order) {
+    log.info({ order: order.id, total: order.total }, "order placed");
+    events.emit("order", order);
+  }
 }
 
 // Send a message to a customer (used for order status updates).

@@ -67,6 +67,8 @@ const STATUS_LABEL = {
   ready: "ready",
 };
 
+const ADDRESS_QUESTION = "Almost done! Reply *1* for Pickup, or send your delivery address for Delivery.";
+
 const word = (text) => text.trim().toLowerCase().replace(/[.!]+$/, "");
 
 /**
@@ -111,7 +113,7 @@ export function handleMessage({ jid, phone, name, text }) {
       type = "delivery";
       address = text.trim();
     } else {
-      return reply("Reply *1* for Pickup, or send your full delivery address for Delivery.");
+      return reply(ADDRESS_QUESTION);
     }
 
     const { items, total } = cartLines(chat.cart);
@@ -134,7 +136,7 @@ export function handleMessage({ jid, phone, name, text }) {
   if (["yes", "y", "ok", "okay", "confirm", "done"].includes(w)) {
     if (chat.cart.length === 0) return reply("Your cart is empty.\n\n" + menuText());
     db.saveChat({ jid, step: "address", cart: chat.cart });
-    return reply("Almost done! Reply *1* for Pickup, or send your delivery address for Delivery.");
+    return reply(ADDRESS_QUESTION);
   }
 
   const picks = parseItems(text);

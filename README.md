@@ -1,47 +1,50 @@
 # WhatsApp Orders
 
-Customers order food by chatting with the restaurant's WhatsApp number. Orders appear live on a web dashboard. See `PLAN.md` for the full design.
+Take restaurant orders over WhatsApp. Customers chat with the restaurant's number, pick dishes by typing item numbers, and their orders appear live on a web dashboard. The restaurant's WhatsApp is linked by scanning a QR code, like WhatsApp Web. No paid WhatsApp Business API needed.
 
-## Run
+```
+Customer:  hi                 →  numbered menu
+Customer:  1, 3x2             →  cart + total
+Customer:  yes                →  pickup or delivery?
+Customer:  Flat 4, MG Road    →  ✅ Order #12 placed   →  🔔 dashboard
+Staff:     Accept → Mark ready → Mark done             →  customer gets a WhatsApp update each time
+```
+
+## Quick start
 
 ```bash
 npm install
-PIN=4321 npm start          # PIN for the dashboard (default 1234)
+PIN=4321 PORT=3300 npm start
 ```
 
-Open http://localhost:3000 → log in with the PIN → **WhatsApp** tab → scan the QR with the restaurant's phone (WhatsApp → Linked devices → Link a device).
+Open http://localhost:3300 → log in with the PIN → **WhatsApp** tab → scan the QR from the restaurant's phone (WhatsApp → Linked devices → Link a device).
 
-Options (environment variables): `PORT` (3000), `PIN` (1234), `DB_FILE` (./data.db), `AUTH_DIR` (./auth, the saved WhatsApp login).
+> Linking a number that friends/family also message? Put your test number in **Settings → Test numbers** first. The bot then replies only to that number.
 
-## Testing safely
+## Features
 
-If the linked number is also used by friends/family, first put your test number(s) in **Settings → Test numbers**. The bot then replies only to those numbers. Clear the field when you go live.
+- WhatsApp bot: numbered menu, cart with quantities, pickup or delivery address, `STATUS`, `CANCEL`
+- Live order board (New → Preparing → Ready → Done) with sound, status messages to customers
+- Menu editor with categories and sold-out switch
+- Open/closed switch, restaurant name, welcome line, test-number mode
+- PIN-protected dashboard that works on phones
+- One Node process + one SQLite file; no build step, no browser automation
 
-## What a customer sends
+## Documentation
 
-| Message | Bot does |
+| Doc | For |
 |---|---|
-| `hi` / `menu` | Sends the numbered menu |
-| `1, 3x2, 5` | Adds items (3x2 = two of item 3) and shows the cart |
-| `yes` | Asks: 1 for pickup, or the delivery address |
-| `1` or an address | Places the order → it pops up on the dashboard |
-| `status` | Shows their open orders |
-| `cart` / `cancel` | Shows / clears the cart |
+| [User Guide](docs/USER_GUIDE.md) | Restaurant staff: connecting WhatsApp, handling orders, menu, settings, customer commands, troubleshooting |
+| [Setup & Running](docs/SETUP.md) | Install, configuration, logs, hosting, backups, moving machines |
+| [Developer Guide](docs/DEVELOPER.md) | Architecture, conversation state machine, data model, HTTP API, design decisions |
+| [Original plan](PLAN.md) | The first design |
 
-When the restaurant presses **Accept → Mark ready → Mark done** (or **Reject**), the customer gets a WhatsApp message each time.
-The **Open** switch in the header turns ordering off ("we're closed").
+## Tests
 
-## Files
+```bash
+npm test
+```
 
-- `server.js`: dashboard API, PIN login, live updates
-- `whatsapp.js`: QR linking (Baileys), receiving and sending messages
-- `bot.js`: the chat flow
-- `db.js`: SQLite tables (built into Node, no setup)
-- `public/`: the dashboard page
-- `npm test`: runs a full simulated conversation (no WhatsApp needed)
+## Note
 
-## Notes
-
-- This uses WhatsApp Web linking, not the official Business API. Reply-only use is normally fine, but don't send bulk messages from the number.
-- The server must stay running for the bot to answer.
-- Restarting the server logs you out of the dashboard (the WhatsApp link is kept).
+This uses WhatsApp Web linking ([Baileys](https://github.com/WhiskeySockets/Baileys)), not the official WhatsApp Business API. Reply-only use is normally fine; don't send bulk messages from the linked number.

@@ -1,0 +1,18 @@
+{
+  "name": "whatsapp-orders",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Take restaurant orders over WhatsApp, manage them on a web dashboard.",
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning server.js",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": { "node": ">=22.13" },
+  "dependencies": {
+    "@whiskeysockets/baileys": "6.7.24",
+    "express": "^5.1.0",
+    "pino": "^9.6.0",
+    "qrcode": "^1.5.4"
+  }
+}
